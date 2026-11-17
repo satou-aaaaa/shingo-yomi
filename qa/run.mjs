@@ -537,6 +537,16 @@ try {
   await q.close(); }
 { const bad = G.KINDS.filter((k) => { for (let i = 0; i < 200; i++) if (!G.GROUPS[G.make(`${k.id}|g${i}`).grp]) return true; return false; }).map((k) => k.id), used = new Set(G.KINDS.map((k) => k.grp));
   check("2段目の答え：どの種類の問題も5つのどれかで、5つとも使う", bad.length === 0 && used.size === 5, bad.join(",")); }
+// ことば帳から始める1種類の練習は、どの種類も5問（ちがう問題が5通り無い種類で4問以下になっていた。shared-workflows#409）
+{ const q = await newPage(); await closeHow(q);
+  const few = await q.evaluate((ids) => ids.filter((id) => { __nm.start("p", id); const r = __nm.load().runs.p; return !r || r.list.length !== 5 || r.list.some((t) => t.split("|")[0] !== id); }), G.KINDS.map((k) => k.id));
+  check("ことば帳から始める1種類の練習は、どの種類も5問になる（ちがう問題が5通り無い種類でも）", few.length === 0, few.join(","));
+  await q.close(); }
+// 記録の数の欄に、数でも文字でもない値（{toString:null} など）が入っていても、画面が出る（hoken-dore #1 の CodeRabbit）
+{ const q = await newPage(); await closeHow(q);
+  await q.evaluate((k) => localStorage.setItem(k, JSON.stringify({ v: 1, tut: true, ebest: { toString: null }, days: {}, hdays: {}, adays: {}, dex: {}, runs: {}, kofi: {}, ach: {} })), "sgn-v1"); await q.reload(); await q.waitForTimeout(200);
+  check("記録の数の欄が数でも文字でもなくても、ホームが出る（数にするのは数と文字だけ）", await q.locator("#go-d").count() === 1 && await q.evaluate(() => __nm.load().ebest) === 0);
+  await q.close(); }
 // 引き継ぎコード（shared-workflows template/qa/transfer-check.mjs）
 try {
   const sample = { "sgn-v1": JSON.stringify({ v: 1, tut: true, days: { "2026-11-13": { m: [0, 1, 0, 0, 2], k: ["e_ao", "e_ki", "n_akaten", "n_hito_aka", "h_ao_ped"] } }, hdays: {}, adays: {}, dex: { e_ao: 1, e_aka: 1, e_aoyaji: 1, n_akaten: 1, n_kiyaji: 1 }, runs: {}, kofi: {}, ach: {}, ebest: 7, t: 1 }), "sgn-fs": "3", "sgn-depth": JSON.stringify({ v: 1, rv: { "e_ao|x1": { s: 1, due: "2026-11-20", t: 5 } } }) }; // 復習の記録も引き継ぐかを見る（CodeRabbit shingo-yomi#1）

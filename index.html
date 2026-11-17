@@ -552,7 +552,7 @@ function joinCur(w, o) {
 }
 function load() { return GameStore.load(KEY, mem, { v: 1, fresh, tidy, bank, doneOf, bookOf, join: joinCur, objs: ["days", "hdays", "adays", "dex", "runs", "kofi", "ach"] }); }
 // 引き継ぎコードなどから入った値を正しい形に直す（数の所に文字が入っていても画面に出さない）
-const num = (v) => (Number.isFinite(+v) && +v >= 0 ? Math.floor(+v) : 0);
+const num = (v) => ((typeof v === "number" || typeof v === "string") && Number.isFinite(+v) && +v >= 0 ? Math.floor(+v) : 0); // 数と文字だけを数にする（{toString:null} などで + が例外を出し、画面が出なくなる。hoken-dore #1 の CodeRabbit）
 // 終えた回の id を覚える（保存に失敗しても、合わせるときに終えた回を戻さない）。古いものから捨てて30まで
 function endRun(s, id) { if (typeof id !== "string") return; const g = s.gone && typeof s.gone === "object" && !Array.isArray(s.gone) ? s.gone : {}; g[id] = 1; const ks = Object.keys(g); for (const k of ks.slice(0, Math.max(0, ks.length - 30))) delete g[k]; s.gone = g; }
 function tidy(s) {
@@ -691,7 +691,7 @@ function startRun(mode, opt) {
     if (doneOf(s.runs[mode])) bank(s, s.runs[mode]); // 別のタブで終えたまま記録していない回は、上書きする前に記録する
     let list;
     if (mode === "d" || mode === "h") list = listOf(mode, k);
-    else if (typeof opt === "string") list = randomTags([opt], 5, rid(), new Set(), null);
+    else if (typeof opt === "string") { list = randomTags([opt], 5, rid(), new Set(), null); for (let i = list.length; i < 5; i++) list.push(`${opt}|${rid()}:${i}`); } // 1種類の練習は、ちがう問題が5通り無い種類でも5問にする（同じ問題もまぜる。shared-workflows#409）
     else list = randomTags(idsOf([opt]), 5, rid(), new Set(), null);
     s.runs[mode] = { mode, date: k, list, res: [], cur: null, id: rid(), a0: achGot(s) };
   });
