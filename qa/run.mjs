@@ -58,6 +58,7 @@ const OKSRC = /^https:\/\/laws\.e-gov\.go\.jp\/law\/(335CO0000000270|335AC000000
         if (k.lv === 0 && wrong.some((o) => CF[t].includes(o))) why.push("やさしいのに、まぎらわしい信号がまじる");
         if (k.lv === 2 && !wrong.some((o) => CF[t].includes(o))) why.push("むずかしいのに、まぎらわしい信号が無い");
         if (wrong.some((o) => (SAME[k.id] || []).includes(o))) why.push("その文にも当てはまる信号が、まちがいの選び肢にまじる");
+        if (t === "黄の点滅" && wrong.includes("赤の点滅") && !/止まらず|止まらなくてよい|一時停止しなくてよい|一時停止の決まりは無い/.test(P.q)) why.push("黄の点滅の文に、車が止まらなくてよいことが無い（赤の点滅も当てはまる。CodeRabbit shingo-yomi#1）");
         if (P.opts.includes("赤の灯火") && P.opts.includes("人の形の赤") && /横断してはいけない|渡ってはいけない/.test(P.q) && !/歩行者用の信号で|人の形でない信号で/.test(P.q)) why.push("歩行者の文なのに、歩行者用か車用かを書いていない");
       }
       if (!P.src.length || P.src.some((x) => !Array.isArray(x) || !OKSRC.test(x[1]))) why.push("出典が無い・公式のページでない");
